@@ -1,0 +1,1461 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alameda Storage - Gestión de Estacionamientos</title>
+    <style>
+        /* Variables y Reset */
+        :root {
+            --primary-color: #1e40af;
+            --secondary-color: #475569;
+            --success-color: #059669;
+            --warning-color: #d97706;
+            --danger-color: #dc2626;
+            --info-color: #0369a1;
+            --light-color: #f8fafc;
+            --dark-color: #1e293b;
+            --border-radius: 8px;
+            --box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark-color);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+
+        /* Layout */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            color: var(--dark-color);
+            padding: 1.5rem 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        .subtitle {
+            opacity: 0.8;
+            font-size: 1.1rem;
+        }
+
+        /* Navegación por pestañas */
+        .nav-tabs {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            margin-bottom: 2rem;
+            padding: 0.5rem;
+            box-shadow: var(--box-shadow);
+            backdrop-filter: blur(10px);
+        }
+
+        .tab-btn {
+            padding: 1rem 0.5rem;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border-radius: var(--border-radius);
+            color: var(--secondary-color);
+        }
+
+        .tab-btn:hover {
+            background-color: #e2e8f0;
+            transform: translateY(-2px);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary-color);
+            color: white;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        }
+
+        /* Contenido principal */
+        .main-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: var(--border-radius);
+            padding: 2rem;
+            box-shadow: var(--box-shadow);
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            min-height: 600px;
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Formularios */
+        .form {
+            max-width: 600px;
+            margin-bottom: 2rem;
+            background: var(--light-color);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--dark-color);
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px solid #e2e8f0;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        /* Botones */
+        .btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .btn-success:hover {
+            background-color: #047857;
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-info {
+            background-color: var(--info-color);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+
+        /* Listas y tarjetas */
+        .grid-container {
+            display: grid;
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .vehicle-card, .tarifa-card, .caja-card, .contabilidad-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: transform 0.3s ease;
+        }
+
+        .vehicle-card:hover, .tarifa-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-info {
+            flex: 1;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        /* Estadísticas */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, var(--primary-color), #3730a3);
+            color: white;
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            text-align: center;
+            box-shadow: var(--box-shadow);
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--box-shadow);
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+            margin-top: 1.5rem;
+        }
+
+        /* Tablas */
+        .table-container {
+            overflow-x: auto;
+            margin-top: 1.5rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: var(--box-shadow);
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background-color: var(--primary-color);
+            color: white;
+            font-weight: 600;
+        }
+
+        tr:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Utilidades */
+        .hidden {
+            display: none !important;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .mt-2 {
+            margin-top: 2rem;
+        }
+
+        .mb-2 {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background-color: var(--success-color);
+            color: white;
+        }
+
+        .badge-warning {
+            background-color: var(--warning-color);
+            color: white;
+        }
+
+        .badge-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-tabs {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .vehicle-card, .tarifa-card {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            
+            .card-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .main-content {
+                padding: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .nav-tabs {
+                grid-template-columns: 1fr;
+            }
+            
+            .modal-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🏢 Alameda Storage</h1>
+            <p class="subtitle">Sistema Integral de Gestión de Estacionamientos</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <button class="tab-btn active" data-tab="ingreso">📥 Ingreso</button>
+            <button class="tab-btn" data-tab="salida">📤 Salida</button>
+            <button class="tab-btn" data-tab="tarifas">💰 Tarifas</button>
+            <button class="tab-btn" data-tab="caja">💵 Caja</button>
+            <button class="tab-btn" data-tab="contabilidad">📊 Contabilidad</button>
+            <button class="tab-btn" data-tab="reportes">📈 Reportes</button>
+        </nav>
+
+        <main class="main-content">
+            <!-- Módulo de Ingreso -->
+            <section id="ingreso" class="tab-content active">
+                <h2 class="section-title">Registro de Ingreso de Vehículos</h2>
+                <div class="form">
+                    <div class="form-group">
+                        <label for="placa">Placa del Vehículo:</label>
+                        <input type="text" id="placa" required placeholder="ABC123" maxlength="6" style="text-transform:uppercase">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tipo-vehiculo">Tipo de Vehículo:</label>
+                        <select id="tipo-vehiculo" required>
+                            <option value="">Seleccionar...</option>
+                            <option value="carro">🚗 Carro</option>
+                            <option value="moto">🏍️ Moto</option>
+                            <option value="camion">🚚 Camión</option>
+                            <option value="bicicleta">🚲 Bicicleta</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="tarifa-ingreso">Tarifa Aplicable:</label>
+                        <select id="tarifa-ingreso" required>
+                            <option value="">Seleccionar tarifa...</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="observaciones-ingreso">Observaciones:</label>
+                        <textarea id="observaciones-ingreso" placeholder="Observaciones adicionales..." rows="3"></textarea>
+                    </div>
+
+                    <button type="button" onclick="registrarIngreso()" class="btn btn-primary">
+                        ✅ Registrar Ingreso
+                    </button>
+                </div>
+
+                <div id="ticket-result" class="card hidden">
+                    <h3>🎫 Ticket Generado - Alameda Storage</h3>
+                    <div class="ticket-info">
+                        <p><strong>ID Ticket:</strong> <span id="ticket-id"></span></p>
+                        <p><strong>Placa:</strong> <span id="ticket-placa"></span></p>
+                        <p><strong>Tipo:</strong> <span id="ticket-tipo"></span></p>
+                        <p><strong>Hora Ingreso:</strong> <span id="ticket-hora"></span></p>
+                        <p><strong>Tarifa:</strong> <span id="ticket-tarifa"></span></p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Módulo de Salida -->
+            <section id="salida" class="tab-content">
+                <h2 class="section-title">Registro de Salida de Vehículos</h2>
+                <div class="form">
+                    <div class="form-group">
+                        <label for="buscar-salida">Buscar por Placa o ID Ticket:</label>
+                        <input type="text" id="buscar-salida" placeholder="ABC123 o TKT-123..." style="text-transform:uppercase">
+                    </div>
+                    <button type="button" onclick="buscarParaSalida()" class="btn btn-primary">
+                        🔍 Buscar Vehículo
+                    </button>
+                </div>
+
+                <div id="resultado-busqueda" class="grid-container">
+                    <!-- Resultados de búsqueda aparecerán aquí -->
+                </div>
+            </section>
+
+            <!-- Módulo de Tarifas -->
+            <section id="tarifas" class="tab-content">
+                <h2 class="section-title">Gestión de Tarifas</h2>
+                <div class="form">
+                    <div class="form-group">
+                        <label for="nombre-tarifa">Nombre de la Tarifa:</label>
+                        <input type="text" id="nombre-tarifa" required placeholder="Ej: Carro por Hora, Moto Diaria...">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="tipo-tarifa">Tipo de Tarifa:</label>
+                        <select id="tipo-tarifa" required onchange="toggleCamposTarifa()">
+                            <option value="">Seleccionar tipo...</option>
+                            <option value="minuto">Por Minuto</option>
+                            <option value="hora">Por Hora</option>
+                            <option value="unica">Tarifa Única</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group" id="grupo-valor-minuto">
+                        <label for="valor-minuto">Valor por Minuto (COP):</label>
+                        <input type="number" id="valor-minuto" min="0" step="50" placeholder="150">
+                    </div>
+
+                    <div class="form-group" id="grupo-valor-hora">
+                        <label for="valor-hora">Valor por Hora (COP):</label>
+                        <input type="number" id="valor-hora" min="0" step="1000" placeholder="3000">
+                    </div>
+
+                    <div class="form-group" id="grupo-valor-unica">
+                        <label for="valor-unica">Valor Tarifa Única (COP):</label>
+                        <input type="number" id="valor-unica" min="0" step="1000" placeholder="5000">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="aplicable-a">Aplicable a:</label>
+                        <select id="aplicable-a" required>
+                            <option value="todos">Todos los vehículos</option>
+                            <option value="carro">Solo Carros</option>
+                            <option value="moto">Solo Motos</option>
+                            <option value="camion">Solo Camiones</option>
+                        </select>
+                    </div>
+
+                    <button type="button" onclick="crearTarifa()" class="btn btn-success">
+                        ➕ Crear Tarifa
+                    </button>
+                </div>
+
+                <div class="table-container">
+                    <table id="tabla-tarifas">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Valor</th>
+                                <th>Aplicable a</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="lista-tarifas">
+                            <!-- Las tarifas se cargarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Módulo de Caja -->
+            <section id="caja" class="tab-content">
+                <h2 class="section-title">Gestión de Caja</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-caja">$0 COP</div>
+                        <div>Total en Caja</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="ingresos-hoy">$0 COP</div>
+                        <div>Ingresos Hoy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="egresos-hoy">$0 COP</div>
+                        <div>Egresos Hoy</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="transacciones-hoy">0</div>
+                        <div>Transacciones Hoy</div>
+                    </div>
+                </div>
+
+                <div class="form">
+                    <h3>Registrar Movimiento de Caja</h3>
+                    <div class="form-group">
+                        <label for="tipo-movimiento">Tipo de Movimiento:</label>
+                        <select id="tipo-movimiento" required>
+                            <option value="ingreso">Ingreso</option>
+                            <option value="egreso">Egreso</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="monto-movimiento">Monto (COP):</label>
+                        <input type="number" id="monto-movimiento" required min="0" step="100">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="concepto-movimiento">Concepto:</label>
+                        <input type="text" id="concepto-movimiento" required placeholder="Ej: Pago estacionamiento, Gastos operativos...">
+                    </div>
+
+                    <button type="button" onclick="registrarMovimientoCaja()" class="btn btn-primary">
+                        💰 Registrar Movimiento
+                    </button>
+                </div>
+
+                <div class="table-container mt-2">
+                    <h3>Movimientos de Hoy</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Tipo</th>
+                                <th>Concepto</th>
+                                <th>Monto</th>
+                            </tr>
+                        </thead>
+                        <tbody id="movimientos-caja">
+                            <!-- Los movimientos se cargarán aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Módulo de Contabilidad -->
+            <section id="contabilidad" class="tab-content">
+                <h2 class="section-title">Contabilidad y Reportes Financieros</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="ingresos-mes">$0 COP</div>
+                        <div>Ingresos del Mes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="egresos-mes">$0 COP</div>
+                        <div>Egresos del Mes</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="balance-mes">$0 COP</div>
+                        <div>Balance Mensual</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="vehiculos-mes">0</div>
+                        <div>Vehículos Mes</div>
+                    </div>
+                </div>
+
+                <div class="form">
+                    <h3>Filtros de Reporte</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="fecha-inicio">Fecha Inicio:</label>
+                            <input type="date" id="fecha-inicio">
+                        </div>
+                        <div class="form-group">
+                            <label for="fecha-fin">Fecha Fin:</label>
+                            <input type="date" id="fecha-fin">
+                        </div>
+                    </div>
+                    <button type="button" onclick="generarReporteContable()" class="btn btn-info">
+                        📊 Generar Reporte
+                    </button>
+                </div>
+
+                <div class="table-container mt-2">
+                    <h3>Detalle de Transacciones</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Fecha</th>
+                                <th>Concepto</th>
+                                <th>Tipo</th>
+                                <th>Monto</th>
+                                <th>Placa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detalle-contable">
+                            <!-- El detalle contable se cargará aquí -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Módulo de Reportes -->
+            <section id="reportes" class="tab-content">
+                <h2 class="section-title">Reportes y Análisis</h2>
+                
+                <div class="grid-container">
+                    <div class="card">
+                        <h3>📈 Reporte de Ingresos por Día</h3>
+                        <div id="reporte-ingresos" class="mt-2">
+                            <!-- Gráfico de ingresos -->
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>🚗 Distribución por Tipo de Vehículo</h3>
+                        <div id="reporte-tipos" class="mt-2">
+                            <!-- Gráfico de tipos -->
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <h3>💰 Tarifas Más Utilizadas</h3>
+                        <div id="reporte-tarifas" class="mt-2">
+                            <!-- Gráfico de tarifas -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-2">
+                    <h3>Exportar Datos</h3>
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <button onclick="exportarDatos('excel')" class="btn btn-success">📊 Exportar a Excel</button>
+                        <button onclick="exportarDatos('pdf')" class="btn btn-danger">📄 Exportar a PDF</button>
+                        <button onclick="exportarDatos('csv')" class="btn btn-info">📋 Exportar a CSV</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Modal para salida de vehículo -->
+        <div id="modal-salida" class="modal hidden">
+            <div class="modal-content">
+                <h3>✅ Registrar Salida - Alameda Storage</h3>
+                <div id="info-vehiculo"></div>
+                <div class="modal-actions">
+                    <button onclick="confirmarSalida()" class="btn btn-success">Confirmar Salida y Cobro</button>
+                    <button onclick="cerrarModal()" class="btn btn-danger">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de la aplicación
+        const APP_KEY = 'alamedaStorageData';
+        
+        // Estado de la aplicación
+        let estadoApp = {
+            vehiculosParqueados: [],
+            tarifas: [],
+            movimientosCaja: [],
+            transacciones: [],
+            configuracion: {
+                nombreEmpresa: 'Alameda Storage',
+                moneda: 'COP'
+            }
+        };
+
+        // Inicialización de la aplicación
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🏢 Inicializando Alameda Storage...');
+            inicializarApp();
+            configurarNavegacion();
+        });
+
+        function inicializarApp() {
+            // Cargar datos del localStorage
+            cargarDatosLocalStorage();
+            
+            // Inicializar tarifas por defecto si no existen
+            if (estadoApp.tarifas.length === 0) {
+                inicializarTarifasPorDefecto();
+            }
+            
+            // Cargar tarifas en los selects
+            cargarTarifasEnSelect();
+            
+            // Actualizar interfaces
+            actualizarInterfazCaja();
+            actualizarInterfazContabilidad();
+            cargarListaTarifas();
+            
+            // Configurar fecha por defecto en filtros
+            const hoy = new Date().toISOString().split('T')[0];
+            document.getElementById('fecha-inicio').value = hoy;
+            document.getElementById('fecha-fin').value = hoy;
+        }
+
+        function configurarNavegacion() {
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            
+            tabBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const targetTab = this.getAttribute('data-tab');
+                    
+                    // Remover clase active de todos los botones y contenidos
+                    tabBtns.forEach(b => b.classList.remove('active'));
+                    document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+                    
+                    // Agregar clase active al botón y contenido seleccionado
+                    this.classList.add('active');
+                    document.getElementById(targetTab).classList.add('active');
+                    
+                    // Acciones específicas por pestaña
+                    switch(targetTab) {
+                        case 'salida':
+                            document.getElementById('buscar-salida').value = '';
+                            document.getElementById('resultado-busqueda').innerHTML = '';
+                            break;
+                        case 'reportes':
+                            generarReportes();
+                            break;
+                    }
+                });
+            });
+        }
+
+        // MÓDULO DE INGRESO
+        function registrarIngreso() {
+            const placa = document.getElementById('placa').value.toUpperCase().trim();
+            const tipoVehiculo = document.getElementById('tipo-vehiculo').value;
+            const tarifaId = document.getElementById('tarifa-ingreso').value;
+            const observaciones = document.getElementById('observaciones-ingreso').value;
+            
+            // Validaciones
+            if (!placa || !tipoVehiculo || !tarifaId) {
+                alert('❌ Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            if (placa.length < 3) {
+                alert('❌ La placa debe tener al menos 3 caracteres');
+                return;
+            }
+            
+            // Verificar si el vehículo ya está parqueado
+            if (estadoApp.vehiculosParqueados.some(v => v.placa === placa)) {
+                alert('❌ Este vehículo ya se encuentra parqueado');
+                return;
+            }
+            
+            // Obtener tarifa seleccionada
+            const tarifa = estadoApp.tarifas.find(t => t.id === tarifaId);
+            if (!tarifa) {
+                alert('❌ Error: Tarifa no encontrada');
+                return;
+            }
+            
+            // Generar ticket único
+            const ticketId = 'TKT-' + Date.now();
+            const horaEntrada = new Date();
+            
+            // Crear objeto vehículo
+            const nuevoVehiculo = {
+                id: ticketId,
+                placa: placa,
+                tipo: tipoVehiculo,
+                tarifaId: tarifaId,
+                horaEntrada: horaEntrada.getTime(),
+                observaciones: observaciones,
+                estado: 'parqueado'
+            };
+            
+            try {
+                // Guardar en estado local
+                estadoApp.vehiculosParqueados.push(nuevoVehiculo);
+                
+                // Guardar en localStorage
+                guardarDatosLocalStorage();
+                
+                // Mostrar ticket
+                mostrarTicket(ticketId, placa, tipoVehiculo, horaEntrada, tarifa.nombre);
+                
+                // Limpiar formulario
+                document.getElementById('placa').value = '';
+                document.getElementById('tipo-vehiculo').value = '';
+                document.getElementById('tarifa-ingreso').value = '';
+                document.getElementById('observaciones-ingreso').value = '';
+                
+                console.log('✅ Vehículo registrado exitosamente:', nuevoVehiculo);
+                
+            } catch (error) {
+                console.error('Error al registrar ingreso:', error);
+                alert('❌ Error al registrar el ingreso. Por favor intente nuevamente.');
+            }
+        }
+
+        function mostrarTicket(id, placa, tipo, horaEntrada, tarifaNombre) {
+            document.getElementById('ticket-id').textContent = id;
+            document.getElementById('ticket-placa').textContent = placa;
+            document.getElementById('ticket-tipo').textContent = tipo;
+            document.getElementById('ticket-hora').textContent = horaEntrada.toLocaleString();
+            document.getElementById('ticket-tarifa').textContent = tarifaNombre;
+            document.getElementById('ticket-result').classList.remove('hidden');
+        }
+
+        // MÓDULO DE SALIDA
+        function buscarParaSalida() {
+            const termino = document.getElementById('buscar-salida').value.toUpperCase().trim();
+            const contenedor = document.getElementById('resultado-busqueda');
+            
+            if (!termino) {
+                contenedor.innerHTML = '<div class="card"><p class="text-center">🔍 Ingrese una placa o ID ticket para buscar</p></div>';
+                return;
+            }
+            
+            const resultados = estadoApp.vehiculosParqueados.filter(v => 
+                v.placa.includes(termino) || v.id.includes(termino)
+            );
+            
+            if (resultados.length === 0) {
+                contenedor.innerHTML = '<div class="card"><p class="text-center">❌ No se encontraron vehículos con esa placa o ID</p></div>';
+                return;
+            }
+            
+            contenedor.innerHTML = resultados.map(vehiculo => {
+                const tarifa = estadoApp.tarifas.find(t => t.id === vehiculo.tarifaId);
+                const tiempoTranscurrido = Math.floor((new Date().getTime() - vehiculo.horaEntrada) / (1000 * 60));
+                const costoEstimado = calcularCostoEstimado(vehiculo, tiempoTranscurrido);
+                
+                return `
+                    <div class="vehicle-card card">
+                        <div class="card-info">
+                            <h4>🚗 ${vehiculo.placa} - ${vehiculo.tipo}</h4>
+                            <p><strong>ID Ticket:</strong> ${vehiculo.id}</p>
+                            <p><strong>Hora entrada:</strong> ${new Date(vehiculo.horaEntrada).toLocaleString()}</p>
+                            <p><strong>Tarifa:</strong> ${tarifa?.nombre || 'No encontrada'}</p>
+                            <p><strong>Tiempo transcurrido:</strong> ${tiempoTranscurrido} minutos</p>
+                            <p><strong>Costo estimado:</strong> $${costoEstimado.toLocaleString()} COP</p>
+                            ${vehiculo.observaciones ? `<p><strong>Observaciones:</strong> ${vehiculo.observaciones}</p>` : ''}
+                        </div>
+                        <div class="card-actions">
+                            <button onclick="prepararSalida('${vehiculo.id}')" class="btn btn-success btn-sm">
+                                ✅ Registrar Salida
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function calcularCostoEstimado(vehiculo, minutos) {
+            const tarifa = estadoApp.tarifas.find(t => t.id === vehiculo.tarifaId);
+            if (!tarifa) return 0;
+            
+            switch(tarifa.tipo) {
+                case 'minuto':
+                    return minutos * tarifa.valorMinuto;
+                case 'hora':
+                    const horas = Math.ceil(minutos / 60);
+                    return horas * tarifa.valorHora;
+                case 'unica':
+                    return tarifa.valorUnica;
+                default:
+                    return 0;
+            }
+        }
+
+        function prepararSalida(vehiculoId) {
+            const vehiculo = estadoApp.vehiculosParqueados.find(v => v.id === vehiculoId);
+            if (!vehiculo) return;
+            
+            const tarifa = estadoApp.tarifas.find(t => t.id === vehiculo.tarifaId);
+            const tiempoTranscurrido = Math.floor((new Date().getTime() - vehiculo.horaEntrada) / (1000 * 60));
+            const costoTotal = calcularCostoEstimado(vehiculo, tiempoTranscurrido);
+            
+            document.getElementById('info-vehiculo').innerHTML = `
+                <div class="card-info">
+                    <h4>🚗 ${vehiculo.placa} - ${vehiculo.tipo}</h4>
+                    <p><strong>ID Ticket:</strong> ${vehiculo.id}</p>
+                    <p><strong>Hora entrada:</strong> ${new Date(vehiculo.horaEntrada).toLocaleString()}</p>
+                    <p><strong>Hora salida:</strong> ${new Date().toLocaleString()}</p>
+                    <p><strong>Tiempo total:</strong> ${tiempoTranscurrido} minutos</p>
+                    <p><strong>Tarifa aplicada:</strong> ${tarifa?.nombre || 'No encontrada'}</p>
+                    <p><strong>Total a pagar:</strong> $${costoTotal.toLocaleString()} COP</p>
+                    ${vehiculo.observaciones ? `<p><strong>Observaciones:</strong> ${vehiculo.observaciones}</p>` : ''}
+                </div>
+            `;
+            
+            document.getElementById('modal-salida').setAttribute('data-vehiculo-id', vehiculoId);
+            document.getElementById('modal-salida').classList.remove('hidden');
+        }
+
+        function confirmarSalida() {
+            const vehiculoId = document.getElementById('modal-salida').getAttribute('data-vehiculo-id');
+            const vehiculo = estadoApp.vehiculosParqueados.find(v => v.id === vehiculoId);
+            
+            if (!vehiculo) {
+                alert('❌ Error: Vehículo no encontrado');
+                return;
+            }
+            
+            const tiempoTranscurrido = Math.floor((new Date().getTime() - vehiculo.horaEntrada) / (1000 * 60));
+            const monto = calcularCostoEstimado(vehiculo, tiempoTranscurrido);
+            
+            // Registrar transacción
+            const transaccion = {
+                id: 'TRX-' + Date.now(),
+                tipo: 'ingreso',
+                concepto: `Estacionamiento - ${vehiculo.placa}`,
+                monto: monto,
+                fecha: new Date().getTime(),
+                vehiculoId: vehiculoId,
+                placa: vehiculo.placa,
+                duracion: tiempoTranscurrido
+            };
+            
+            estadoApp.transacciones.push(transaccion);
+            
+            // Registrar movimiento de caja
+            const movimientoCaja = {
+                id: 'MOV-' + Date.now(),
+                tipo: 'ingreso',
+                concepto: `Cobro estacionamiento - ${vehiculo.placa}`,
+                monto: monto,
+                fecha: new Date().getTime()
+            };
+            
+            estadoApp.movimientosCaja.push(movimientoCaja);
+            
+            // Remover vehículo
+            estadoApp.vehiculosParqueados = estadoApp.vehiculosParqueados.filter(v => v.id !== vehiculoId);
+            
+            // Guardar cambios
+            guardarDatosLocalStorage();
+            
+            // Actualizar interfaces
+            actualizarInterfazCaja();
+            actualizarInterfazContabilidad();
+            
+            // Cerrar modal y limpiar
+            cerrarModal();
+            document.getElementById('buscar-salida').value = '';
+            document.getElementById('resultado-busqueda').innerHTML = '';
+            
+            // Mostrar resumen
+            alert(`
+                ✅ Salida registrada exitosamente!
+                
+                Resumen del cobro:
+                • Placa: ${vehiculo.placa}
+                • Tiempo: ${tiempoTranscurrido} minutos
+                • Total: $${monto.toLocaleString()} COP
+                
+                ¡Gracias por usar Alameda Storage!
+            `);
+        }
+
+        // MÓDULO DE TARIFAS
+        function toggleCamposTarifa() {
+            const tipo = document.getElementById('tipo-tarifa').value;
+            
+            // Ocultar todos los grupos primero
+            document.getElementById('grupo-valor-minuto').style.display = 'none';
+            document.getElementById('grupo-valor-hora').style.display = 'none';
+            document.getElementById('grupo-valor-unica').style.display = 'none';
+            
+            // Mostrar el grupo correspondiente
+            if (tipo === 'minuto') {
+                document.getElementById('grupo-valor-minuto').style.display = 'block';
+            } else if (tipo === 'hora') {
+                document.getElementById('grupo-valor-hora').style.display = 'block';
+            } else if (tipo === 'unica') {
+                document.getElementById('grupo-valor-unica').style.display = 'block';
+            }
+        }
+
+        function crearTarifa() {
+            const nombre = document.getElementById('nombre-tarifa').value.trim();
+            const tipo = document.getElementById('tipo-tarifa').value;
+            const aplicableA = document.getElementById('aplicable-a').value;
+            
+            if (!nombre || !tipo) {
+                alert('❌ Por favor complete todos los campos obligatorios');
+                return;
+            }
+            
+            let valorMinuto = 0, valorHora = 0, valorUnica = 0;
+            
+            switch(tipo) {
+                case 'minuto':
+                    valorMinuto = parseInt(document.getElementById('valor-minuto').value) || 0;
+                    if (valorMinuto <= 0) {
+                        alert('❌ El valor por minuto debe ser mayor a 0');
+                        return;
+                    }
+                    break;
+                case 'hora':
+                    valorHora = parseInt(document.getElementById('valor-hora').value) || 0;
+                    if (valorHora <= 0) {
+                        alert('❌ El valor por hora debe ser mayor a 0');
+                        return;
+                    }
+                    break;
+                case 'unica':
+                    valorUnica = parseInt(document.getElementById('valor-unica').value) || 0;
+                    if (valorUnica <= 0) {
+                        alert('❌ El valor de tarifa única debe ser mayor a 0');
+                        return;
+                    }
+                    break;
+            }
+            
+            const nuevaTarifa = {
+                id: 'TAR-' + Date.now(),
+                nombre: nombre,
+                tipo: tipo,
+                valorMinuto: valorMinuto,
+                valorHora: valorHora,
+                valorUnica: valorUnica,
+                aplicableA: aplicableA,
+                activa: true,
+                fechaCreacion: new Date().getTime()
+            };
+            
+            estadoApp.tarifas.push(nuevaTarifa);
+            guardarDatosLocalStorage();
+            cargarTarifasEnSelect();
+            cargarListaTarifas();
+            
+            // Limpiar formulario
+            document.getElementById('nombre-tarifa').value = '';
+            document.getElementById('tipo-tarifa').value = '';
+            document.getElementById('valor-minuto').value = '';
+            document.getElementById('valor-hora').value = '';
+            document.getElementById('valor-unica').value = '';
+            document.getElementById('aplicable-a').value = 'todos';
+            
+            // Ocultar todos los grupos de valor
+            document.getElementById('grupo-valor-minuto').style.display = 'none';
+            document.getElementById('grupo-valor-hora').style.display = 'none';
+            document.getElementById('grupo-valor-unica').style.display = 'none';
+            
+            alert('✅ Tarifa creada exitosamente!');
+        }
+
+        function cargarListaTarifas() {
+            const tbody = document.getElementById('lista-tarifas');
+            tbody.innerHTML = estadoApp.tarifas.map(tarifa => `
+                <tr>
+                    <td>${tarifa.nombre}</td>
+                    <td>
+                        ${tarifa.tipo === 'minuto' ? 'Por Minuto' : 
+                          tarifa.tipo === 'hora' ? 'Por Hora' : 'Tarifa Única'}
+                    </td>
+                    <td>
+                        ${tarifa.tipo === 'minuto' ? `$${tarifa.valorMinuto.toLocaleString()}/min` : 
+                          tarifa.tipo === 'hora' ? `$${tarifa.valorHora.toLocaleString()}/hora` : 
+                          `$${tarifa.valorUnica.toLocaleString()} COP`}
+                    </td>
+                    <td>
+                        ${tarifa.aplicableA === 'todos' ? 'Todos' :
+                          tarifa.aplicableA === 'carro' ? 'Carros' :
+                          tarifa.aplicableA === 'moto' ? 'Motos' : 'Camiones'}
+                    </td>
+                    <td>
+                        <button onclick="editarTarifa('${tarifa.id}')" class="btn btn-warning btn-sm">✏️ Editar</button>
+                        <button onclick="eliminarTarifa('${tarifa.id}')" class="btn btn-danger btn-sm">🗑️ Eliminar</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // MÓDULO DE CAJA
+        function registrarMovimientoCaja() {
+            const tipo = document.getElementById('tipo-movimiento').value;
+            const monto = parseInt(document.getElementById('monto-movimiento').value) || 0;
+            const concepto = document.getElementById('concepto-movimiento').value.trim();
+            
+            if (monto <= 0) {
+                alert('❌ El monto debe ser mayor a 0');
+                return;
+            }
+            
+            if (!concepto) {
+                alert('❌ Por favor ingrese un concepto');
+                return;
+            }
+            
+            const movimiento = {
+                id: 'MOV-' + Date.now(),
+                tipo: tipo,
+                monto: monto,
+                concepto: concepto,
+                fecha: new Date().getTime()
+            };
+            
+            estadoApp.movimientosCaja.push(movimiento);
+            guardarDatosLocalStorage();
+            actualizarInterfazCaja();
+            
+            // Limpiar formulario
+            document.getElementById('monto-movimiento').value = '';
+            document.getElementById('concepto-movimiento').value = '';
+            
+            alert(`✅ Movimiento de ${tipo} registrado exitosamente!`);
+        }
+
+        function actualizarInterfazCaja() {
+            const hoy = new Date().toDateString();
+            const movimientosHoy = estadoApp.movimientosCaja.filter(m => 
+                new Date(m.fecha).toDateString() === hoy
+            );
+            
+            const ingresosHoy = movimientosHoy.filter(m => m.tipo === 'ingreso').reduce((sum, m) => sum + m.monto, 0);
+            const egresosHoy = movimientosHoy.filter(m => m.tipo === 'egreso').reduce((sum, m) => sum + m.monto, 0);
+            const totalCaja = ingresosHoy - egresosHoy;
+            
+            document.getElementById('total-caja').textContent = `$${totalCaja.toLocaleString()} COP`;
+            document.getElementById('ingresos-hoy').textContent = `$${ingresosHoy.toLocaleString()} COP`;
+            document.getElementById('egresos-hoy').textContent = `$${egresosHoy.toLocaleString()} COP`;
+            document.getElementById('transacciones-hoy').textContent = movimientosHoy.length;
+            
+            // Actualizar lista de movimientos
+            const tbody = document.getElementById('movimientos-caja');
+            tbody.innerHTML = movimientosHoy.map(mov => `
+                <tr>
+                    <td>${new Date(mov.fecha).toLocaleTimeString()}</td>
+                    <td>
+                        <span class="badge ${mov.tipo === 'ingreso' ? 'badge-success' : 'badge-danger'}">
+                            ${mov.tipo === 'ingreso' ? 'INGRESO' : 'EGRESO'}
+                        </span>
+                    </td>
+                    <td>${mov.concepto}</td>
+                    <td class="text-right">$${mov.monto.toLocaleString()} COP</td>
+                </tr>
+            `).join('');
+        }
+
+        // MÓDULO DE CONTABILIDAD
+        function actualizarInterfazContabilidad() {
+            const mesActual = new Date().getMonth();
+            const añoActual = new Date().getFullYear();
+            
+            const transaccionesMes = estadoApp.transacciones.filter(t => {
+                const fecha = new Date(t.fecha);
+                return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual;
+            });
+            
+            const ingresosMes = transaccionesMes.filter(t => t.tipo === 'ingreso').reduce((sum, t) => sum + t.monto, 0);
+            const egresosMes = estadoApp.movimientosCaja
+                .filter(m => {
+                    const fecha = new Date(m.fecha);
+                    return fecha.getMonth() === mesActual && fecha.getFullYear() === añoActual && m.tipo === 'egreso';
+                })
+                .reduce((sum, m) => sum + m.monto, 0);
+            
+            const balanceMes = ingresosMes - egresosMes;
+            const vehiculosMes = transaccionesMes.filter(t => t.tipo === 'ingreso').length;
+            
+            document.getElementById('ingresos-mes').textContent = `$${ingresosMes.toLocaleString()} COP`;
+            document.getElementById('egresos-mes').textContent = `$${egresosMes.toLocaleString()} COP`;
+            document.getElementById('balance-mes').textContent = `$${balanceMes.toLocaleString()} COP`;
+            document.getElementById('vehiculos-mes').textContent = vehiculosMes;
+        }
+
+        function generarReporteContable() {
+            const fechaInicio = document.getElementById('fecha-inicio').value;
+            const fechaFin = document.getElementById('fecha-fin').value;
+            
+            if (!fechaInicio || !fechaFin) {
+                alert('❌ Por favor seleccione ambas fechas');
+                return;
+            }
+            
+            const inicio = new Date(fechaInicio);
+            const fin = new Date(fechaFin);
+            fin.setHours(23, 59, 59, 999);
+            
+            const transaccionesFiltradas = estadoApp.transacciones.filter(t => {
+                const fecha = new Date(t.fecha);
+                return fecha >= inicio && fecha <= fin;
+            });
+            
+            const movimientosFiltrados = estadoApp.movimientosCaja.filter(m => {
+                const fecha = new Date(m.fecha);
+                return fecha >= inicio && fecha <= fin;
+            });
+            
+            const tbody = document.getElementById('detalle-contable');
+            const todasTransacciones = [
+                ...transaccionesFiltradas.map(t => ({
+                    fecha: t.fecha,
+                    concepto: t.concepto,
+                    tipo: 'INGRESO',
+                    monto: t.monto,
+                    placa: t.placa || '-'
+                })),
+                ...movimientosFiltrados.filter(m => m.tipo === 'egreso').map(m => ({
+                    fecha: m.fecha,
+                    concepto: m.concepto,
+                    tipo: 'EGRESO',
+                    monto: m.monto,
+                    placa: '-'
+                }))
+            ].sort((a, b) => b.fecha - a.fecha);
+            
+            tbody.innerHTML = todasTransacciones.map(trans => `
+                <tr>
+                    <td>${new Date(trans.fecha).toLocaleDateString()}</td>
+                    <td>${trans.concepto}</td>
+                    <td>
+                        <span class="badge ${trans.tipo === 'INGRESO' ? 'badge-success' : 'badge-danger'}">
+                            ${trans.tipo}
+                        </span>
+                    </td>
+                    <td class="text-right">$${trans.monto.toLocaleString()} COP</td>
+                    <td>${trans.placa}</td>
+                </tr>
+            `).join('');
+        }
+
+        // FUNCIONES UTILITARIAS
+        function cargarDatosLocalStorage() {
+            const datosGuardados = localStorage.getItem(APP_KEY);
+            
+            if (datosGuardados) {
+                const datos = JSON.parse(datosGuardados);
+                estadoApp.vehiculosParqueados = datos.vehiculosParqueados || [];
+                estadoApp.tarifas = datos.tarifas || [];
+                estadoApp.movimientosCaja = datos.movimientosCaja || [];
+                estadoApp.transacciones = datos.transacciones || [];
+            }
+        }
+
+        function guardarDatosLocalStorage() {
+            localStorage.setItem(APP_KEY, JSON.stringify(estadoApp));
+        }
+
+        function inicializarTarifasPorDefecto() {
+            const tarifasPorDefecto = [
+                {
+                    id: 'TAR-DEFAULT-CARRO-MINUTO',
+                    nombre: 'Carro por Minuto',
+                    tipo: 'minuto',
+                    valorMinuto: 150,
+                    valorHora: 0,
+                    valorUnica: 0,
+                    aplicableA: 'carro',
+                    activa: true,
+                    fechaCreacion: new Date().getTime()
+                },
+                {
+                    id: 'TAR-DEFAULT-MOTO-MINUTO',
+                    nombre: 'Moto por Minuto',
+                    tipo: 'minuto',
+                    valorMinuto: 100,
+                    valorHora: 0,
+                    valorUnica: 0,
+                    aplicableA: 'moto',
+                    activa: true,
+                    fechaCreacion: new Date().getTime()
+                },
+                {
+                    id: 'TAR-DEFAULT-CARRO-DIARIA',
+                    nombre: 'Carro Tarifa Diaria',
+                    tipo: 'unica',
+                    valorMinuto: 0,
+                    valorHora: 0,
+                    valorUnica: 15000,
+                    aplicableA: 'carro',
+                    activa: true,
+                    fechaCreacion: new Date().getTime()
+                }
+            ];
+            
+            estadoApp.tarifas = tarifasPorDefecto;
+        }
+
+        function cargarTarifasEnSelect() {
+            const select = document.getElementById('tarifa-ingreso');
+            select.innerHTML = '<option value="">Seleccionar tarifa...</option>';
+            
+            estadoApp.tarifas.filter(t => t.activa).forEach(tarifa => {
+                const option = document.createElement('option');
+                option.value = tarifa.id;
+                
+                let texto = `${tarifa.nombre} - `;
+                if (tarifa.tipo === 'minuto') {
+                    texto += `$${tarifa.valorMinuto.toLocaleString()}/min`;
+                } else if (tarifa.tipo === 'hora') {
+                    texto += `$${tarifa.valorHora.toLocaleString()}/hora`;
+                } else {
+                    texto += `$${tarifa.valorUnica.toLocaleString()} COP`;
+                }
+                
+                option.textContent = texto;
+                select.appendChild(option);
+            });
+        }
+
+        function cerrarModal() {
+            document.getElementById('modal-salida').classList.add('hidden');
+        }
+
+        function generarReportes() {
+            // Simulación de gráficos con texto
+            document.getElementById('reporte-ingresos').innerHTML = `
+                <div class="text-center">
+                    <p>📊 Gráfico de ingresos por día</p>
+                    <p><em>Implementar con librería de gráficos</em></p>
+                </div>
+            `;
+            
+            document.getElementById('reporte-tipos').innerHTML = `
+                <div class="text-center">
+                    <p>🚗 Distribución por tipo de vehículo</p>
+                    <p><em>Implementar con librería de gráficos</em></p>
+                </div>
+            `;
+            
+            document.getElementById('reporte-tarifas').innerHTML = `
+                <div class="text-center">
+                    <p>💰 Tarifas más utilizadas</p>
+                    <p><em>Implementar con librería de gráficos</em></p>
+                </div>
+            `;
+        }
+
+        function exportarDatos(formato) {
+            alert(`📊 Función de exportación a ${formato.toUpperCase()} - Por implementar\n\nEsta función permitirá descargar reportes completos en el formato seleccionado.`);
+        }
+
+        // Funciones placeholder para acciones futuras
+        function editarTarifa(tarifaId) {
+            alert(`✏️ Editar tarifa ${tarifaId} - Funcionalidad en desarrollo`);
+        }
+
+        function eliminarTarifa(tarifaId) {
+            if (confirm('¿Está seguro de que desea eliminar esta tarifa?')) {
+                estadoApp.tarifas = estadoApp.tarifas.filter(t => t.id !== tarifaId);
+                guardarDatosLocalStorage();
+                cargarTarifasEnSelect();
+                cargarListaTarifas();
+                alert('✅ Tarifa eliminada exitosamente');
+            }
+        }
+
+        // Inicializar campos de tarifa al cargar
+        toggleCamposTarifa();
+    </script>
+</body>
+</html>
